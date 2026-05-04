@@ -1,0 +1,207 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.container { padding: 1.5rem 0; }
+h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 1.5rem; }
+.tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.tab { padding: 6px 16px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; font-size: 13px; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab.active { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; font-weight: 500; }
+.section { display: none; }
+.section.active { display: block; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+.item-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem; position: relative; }
+.item-card.checked { border-color: #1D9E75; background: #E1F5EE; }
+.item-card input[type=checkbox] { position: absolute; top: 12px; right: 12px; width: 16px; height: 16px; cursor: pointer; accent-color: #1D9E75; }
+.swatch { width: 32px; height: 32px; border-radius: 50%; border: 0.5px solid var(--color-border-tertiary); margin-bottom: 10px; }
+.item-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.item-type { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
+.item-brand { font-size: 12px; color: var(--color-text-secondary); font-style: italic; }
+.item-priority { font-size: 11px; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 8px; }
+.p1 { background: #FAEEDA; color: #633806; }
+.p2 { background: #E6F1FB; color: #0C447C; }
+
+.matrix-wrap { overflow-x: auto; }
+table.matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.matrix th { background: var(--color-background-secondary); color: var(--color-text-secondary); font-weight: 500; padding: 8px 10px; border: 0.5px solid var(--color-border-tertiary); text-align: left; white-space: nowrap; }
+table.matrix td { padding: 8px 10px; border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); font-size: 13px; }
+.dot { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+.dot-yes { background: #E1F5EE; color: #0F6E56; }
+.dot-good { background: #EEEDFE; color: #3C3489; }
+.dot-ok { background: #F1EFE8; color: #5F5E5A; }
+
+.phase-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.phase-label { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
+.ph1 { background: #FAEEDA; color: #633806; }
+.ph2 { background: #E6F1FB; color: #0C447C; }
+.phase-card h3 { font-size: 15px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 10px; }
+.item-list { list-style: none; }
+.item-list li { font-size: 13px; color: var(--color-text-secondary); padding: 4px 0; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; justify-content: space-between; }
+.item-list li:last-child { border-bottom: none; }
+.price { color: var(--color-text-primary); font-weight: 500; }
+.total-bar { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+.total-label { font-size: 13px; color: var(--color-text-secondary); }
+.total-price { font-size: 18px; font-weight: 500; color: var(--color-text-primary); }
+
+.tracker-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+.stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; text-align: center; }
+.stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.stat-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+</style>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('items')">Wardrobe items</button>
+    <button class="tab" onclick="showTab('matrix')">Mix & match</button>
+    <button class="tab" onclick="showTab('shopping')">Shopping list</button>
+  </div>
+
+  <div id="items" class="section active">
+    <div class="tracker-summary">
+      <div class="stat-card"><div class="stat-label">Items checked</div><div class="stat-val" id="checked-count">0</div></div>
+      <div class="stat-card"><div class="stat-label">Items remaining</div><div class="stat-val" id="remaining-count">22</div></div>
+      <div class="stat-card"><div class="stat-label">Est. budget</div><div class="stat-val" id="budget-used">$0</div></div>
+    </div>
+    <div class="grid" id="item-grid"></div>
+  </div>
+
+  <div id="matrix" class="section">
+    <div class="matrix-wrap">
+      <table class="matrix">
+        <thead>
+          <tr>
+            <th>Top</th>
+            <th>Charcoal pants</th>
+            <th>Navy pants</th>
+            <th>Khaki chino</th>
+            <th>Navy chino</th>
+            <th>Olive chino</th>
+            <th>Dark jeans</th>
+            <th>Black jeans</th>
+          </tr>
+        </thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+    <div style="margin-top: 1rem; display: flex; gap: 16px; flex-wrap: wrap;">
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span class="dot dot-yes">★</span> great combo</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span class="dot dot-good">✓</span> works well</span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary)"><span class="dot dot-ok">–</span> passable</span>
+    </div>
+  </div>
+
+  <div id="shopping" class="section">
+    <div class="phase-card">
+      <span class="phase-label ph1">Phase 1 — buy first</span>
+      <h3>Core foundation</h3>
+      <ul class="item-list" id="phase1-list"></ul>
+    </div>
+    <div class="phase-card">
+      <span class="phase-label ph2">Phase 2 — fill in</span>
+      <h3>Round out the rotation</h3>
+      <ul class="item-list" id="phase2-list"></ul>
+    </div>
+    <div class="total-bar">
+      <span class="total-label">Total estimated spend</span>
+      <span class="total-price">$1,450 – $2,050</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const items = [
+  { name: "White oxford", type: "Shirt", brand: "J.Crew / Charles Tyrwhitt", color: "#F5F5F5", priority: 1, price: 70 },
+  { name: "Light blue oxford", type: "Shirt", brand: "J.Crew / Banana Republic", color: "#BFD7EA", priority: 1, price: 75 },
+  { name: "Blue stripe oxford", type: "Shirt", brand: "Charles Tyrwhitt", color: "#7FB3D3", priority: 1, price: 70 },
+  { name: "Navy oxford", type: "Shirt", brand: "Ralph Lauren", color: "#1B3A6B", priority: 2, price: 90 },
+  { name: "Pink oxford", type: "Shirt", brand: "Banana Republic", color: "#F4B8C1", priority: 2, price: 80 },
+  { name: "Gingham oxford", type: "Shirt", brand: "J.Crew", color: "#89CFF0", priority: 2, price: 75 },
+  { name: "Charcoal dress pant", type: "Dress pants", brand: "Banana Republic Traveler", color: "#555555", priority: 1, price: 95 },
+  { name: "Navy dress pant", type: "Dress pants", brand: "J.Crew Ludlow", color: "#1B3A6B", priority: 1, price: 100 },
+  { name: "Medium grey pant", type: "Dress pants", brand: "Bonobos Slim", color: "#9B9B9B", priority: 2, price: 110 },
+  { name: "Tan dress pant", type: "Dress pants", brand: "Banana Republic", color: "#C8A97E", priority: 2, price: 95 },
+  { name: "Khaki chino", type: "Chinos", brand: "Bonobos Slim", color: "#C8A97E", priority: 1, price: 100 },
+  { name: "Navy chino", type: "Chinos", brand: "Banana Republic", color: "#1B3A6B", priority: 1, price: 85 },
+  { name: "Olive chino", type: "Chinos", brand: "J.Crew 484", color: "#6B7C45", priority: 2, price: 80 },
+  { name: "Burgundy chino", type: "Chinos", brand: "Bonobos", color: "#722F37", priority: 2, price: 100 },
+  { name: "Dark indigo jeans", type: "Jeans", brand: "Madewell Slim Straight", color: "#232D4B", priority: 1, price: 110 },
+  { name: "Medium wash jeans", type: "Jeans", brand: "Levi's 511", color: "#5B7EA0", priority: 2, price: 70 },
+  { name: "Black jeans", type: "Jeans", brand: "Madewell / Levi's 511", color: "#1A1A1A", priority: 2, price: 85 },
+];
+
+const grid = document.getElementById('item-grid');
+items.forEach((item, i) => {
+  const card = document.createElement('div');
+  card.className = 'item-card';
+  card.innerHTML = `
+    <input type="checkbox" id="chk-${i}" onchange="updateStats()">
+    <div class="swatch" style="background:${item.color}"></div>
+    <div class="item-name">${item.name}</div>
+    <div class="item-type">${item.type}</div>
+    <div class="item-brand">${item.brand}</div>
+    <div class="item-priority ${item.priority===1?'p1':'p2'}" style="margin-top:8px">Phase ${item.priority}</div>
+  `;
+  card.querySelector('input').addEventListener('change', function() {
+    card.classList.toggle('checked', this.checked);
+  });
+  grid.appendChild(card);
+});
+
+function updateStats() {
+  const checkboxes = document.querySelectorAll('#item-grid input[type=checkbox]');
+  let count = 0, budget = 0;
+  checkboxes.forEach((cb, i) => { if (cb.checked) { count++; budget += items[i].price; } });
+  document.getElementById('checked-count').textContent = count;
+  document.getElementById('remaining-count').textContent = items.length - count;
+  document.getElementById('budget-used').textContent = '$' + budget.toLocaleString();
+}
+
+const shirts = ["White oxford","Light blue oxford","Blue stripe oxford","Navy oxford","Pink oxford","Gingham oxford"];
+const bottoms = ["Charcoal pants","Navy pants","Khaki chino","Navy chino","Olive chino","Dark jeans","Black jeans"];
+const combos = [
+  ["★","★","★","★","✓","★","✓"],
+  ["★","★","★","★","✓","★","✓"],
+  ["★","★","✓","★","✓","★","✓"],
+  ["★","★","✓","★","✓","★","✓"],
+  ["✓","✓","★","✓","–","✓","–"],
+  ["★","★","✓","★","✓","★","✓"],
+];
+const comboClass = { "★": "dot-yes", "✓": "dot-good", "–": "dot-ok" };
+
+const tbody = document.getElementById('matrix-body');
+shirts.forEach((s, i) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td style="font-weight:500;white-space:nowrap">${s}</td>` +
+    combos[i].map(c => `<td style="text-align:center"><span class="dot ${comboClass[c]}">${c}</span></td>`).join('');
+  tbody.appendChild(tr);
+});
+
+const phase1 = items.filter(i => i.priority === 1);
+const phase2 = items.filter(i => i.priority === 2);
+const p1List = document.getElementById('phase1-list');
+const p2List = document.getElementById('phase2-list');
+let p1Total = [0,0], p2Total = [0,0];
+
+phase1.forEach(item => {
+  const li = document.createElement('li');
+  li.innerHTML = `<span>${item.name} <span style="color:var(--color-text-secondary);font-size:12px">${item.type}</span></span><span class="price">~$${item.price}</span>`;
+  p1List.appendChild(li);
+  p1Total[0] += item.price - 15;
+  p1Total[1] += item.price + 15;
+});
+phase2.forEach(item => {
+  const li = document.createElement('li');
+  li.innerHTML = `<span>${item.name} <span style="color:var(--color-text-secondary);font-size:12px">${item.type}</span></span><span class="price">~$${item.price}</span>`;
+  p2List.appendChild(li);
+  p2Total[0] += item.price - 15;
+  p2Total[1] += item.price + 15;
+});
+
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
