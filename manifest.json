@@ -1,0 +1,25 @@
+{
+  "name": "My Wardrobe",
+  "short_name": "Wardrobe",
+  "description": "Personal wardrobe tracker with closet, mix & match matrix, and shopping list",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f4f2",
+  "theme_color": "#f4f4f2",
+  "categories": ["lifestyle", "shopping"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

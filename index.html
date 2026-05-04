@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Wardrobe">
+<meta name="theme-color" content="#f9f9f7">
+<title>Wardrobe</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root {
+  --bg: #f4f4f2;
+  --surface: #ffffff;
+  --surface2: #f0f0ee;
+  --border: #e5e5e3;
+  --text: #1a1a1a;
+  --muted: #888;
+  --subtle: #bbb;
+  --blue-bg: #EBF4FF;
+  --blue-text: #1A5FA8;
+  --blue-border: #93c5fd;
+  --green-bg: #ECFDF5;
+  --green-border: #10b981;
+  --green-text: #065F46;
+  --amber-bg: #FFFBEB;
+  --amber-text: #92400E;
+  --amber-border: #FDE68A;
+  --red-bg: #FEF2F2;
+  --red-text: #991B1B;
+  --gray-bg: #F3F4F6;
+  --gray-text: #6B7280;
+  --purple-bg: #F5F3FF;
+  --purple-text: #5B21B6;
+  --nav-h: 60px;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111112;
+    --surface: #1c1c1e;
+    --surface2: #2c2c2e;
+    --border: #3a3a3c;
+    --text: #f2f2f7;
+    --muted: #8e8e93;
+    --subtle: #48484a;
+    --blue-bg: #0d2137;
+    --blue-text: #60a5fa;
+    --blue-border: #1d4ed8;
+    --green-bg: #052e16;
+    --green-border: #10b981;
+    --green-text: #6ee7b7;
+    --amber-bg: #1c1400;
+    --amber-text: #fcd34d;
+    --amber-border: #92400e;
+    --red-bg: #1f0707;
+    --red-text: #fca5a5;
+    --gray-bg: #2c2c2e;
+    --gray-text: #9CA3AF;
+    --purple-bg: #1e1638;
+    --purple-text: #a78bfa;
+  }
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px); }
+
+/* ── Header ── */
+.header { padding: 20px 16px 4px; display: flex; justify-content: space-between; align-items: baseline; }
+.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.header-sub { font-size: 12px; color: var(--muted); }
+
+/* ── Stats row ── */
+.stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 10px 16px 0; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; text-align: center; }
+.stat-label { font-size: 10px; color: var(--muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .04em; }
+.stat-val { font-size: 20px; font-weight: 700; }
+
+/* ── Sections ── */
+.section { display: none; padding: 0 16px; }
+.section.active { display: block; }
+.cat-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin: 20px 0 8px; }
+
+/* ── Item grid ── */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px,1fr)); gap: 8px; }
+.item-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 12px 10px; position: relative; transition: border-color .15s, background .15s; }
+.item-card.is-owned { border-color: var(--green-border); background: var(--green-bg); }
+.item-card.is-want { border-color: var(--blue-border); background: var(--blue-bg); }
+.swatch { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); margin-bottom: 8px; flex-shrink: 0; }
+.shoe-icon { font-size: 22px; margin-bottom: 8px; display: block; line-height: 1; }
+.item-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; line-height: 1.3; padding-right: 4px; }
+.item-sub { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.item-brand { font-size: 10px; color: var(--subtle); font-style: italic; margin-bottom: 8px; }
+.phase-badge { font-size: 10px; padding: 2px 7px; border-radius: 7px; display: inline-block; font-weight: 600; margin-bottom: 8px; }
+.p1 { background: var(--amber-bg); color: var(--amber-text); }
+.p2 { background: var(--blue-bg); color: var(--blue-text); }
+
+/* Own / Want toggle */
+.toggle-row { display: flex; gap: 5px; margin-top: 2px; }
+.tog { flex: 1; padding: 5px 4px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 11px; font-weight: 600; cursor: pointer; transition: all .12s; text-align: center; }
+.tog.own.active { background: var(--green-border); color: #fff; border-color: var(--green-border); }
+.tog.want.active { background: var(--blue-text); color: #fff; border-color: var(--blue-text); }
+
+/* ── Closet ── */
+.closet-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.closet-empty .ico { font-size: 48px; margin-bottom: 12px; }
+.closet-empty p { font-size: 14px; line-height: 1.7; max-width: 260px; margin: 0 auto; }
+.closet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px,1fr)); gap: 8px; }
+.closet-card { background: var(--surface); border: 1.5px solid var(--green-border); border-radius: 14px; padding: 12px; position: relative; }
+.closet-card .rm { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; border-radius: 50%; background: var(--red-bg); color: var(--red-text); border: none; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+.c-swatch-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.c-swatch { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+.c-name { font-size: 12px; font-weight: 600; line-height: 1.3; padding-right: 20px; }
+.c-brand { font-size: 11px; color: var(--muted); margin-bottom: 8px; font-style: italic; }
+.c-notes { width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--text); font-size: 11px; padding: 6px 8px; resize: none; font-family: inherit; line-height: 1.5; outline: none; }
+.c-notes:focus { border-color: var(--green-border); }
+.c-notes::placeholder { color: var(--subtle); }
+
+/* ── Matrix ── */
+.matrix-wrap { overflow-x: auto; margin-top: 12px; border-radius: 12px; border: 1px solid var(--border); }
+table.mx { border-collapse: collapse; font-size: 11px; min-width: 620px; width: 100%; }
+table.mx th { background: var(--surface2); color: var(--muted); font-weight: 600; padding: 8px 9px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); white-space: nowrap; text-align: left; font-size: 10px; }
+table.mx td { padding: 6px 9px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; }
+table.mx td.rl { text-align: left; font-weight: 600; white-space: nowrap; font-size: 11px; background: var(--surface); color: var(--text); }
+table.mx tr:last-child td { border-bottom: none; }
+.dot { width: 19px; height: 19px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+.dy { background: #D1FAE5; color: #065F46; }
+.dg { background: var(--purple-bg); color: var(--purple-text); }
+.dn { background: var(--gray-bg); color: var(--gray-text); }
+.dx { background: var(--red-bg); color: var(--red-text); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+.tip-box { background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: 12px; color: var(--amber-text); line-height: 1.6; }
+
+/* ── Shopping ── */
+.phase-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; margin-top: 12px; }
+.ph-badge { font-size: 10px; font-weight: 700; padding: 2px 9px; border-radius: 7px; display: inline-block; margin-bottom: 8px; }
+.ph1b { background: var(--amber-bg); color: var(--amber-text); }
+.ph2b { background: var(--blue-bg); color: var(--blue-text); }
+.phase-card h3 { font-size: 13px; font-weight: 700; margin-bottom: 10px; }
+.s-list { list-style: none; }
+.s-list li { font-size: 12px; color: var(--muted); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.s-list li:last-child { border-bottom: none; }
+.s-list li.owned-row { opacity: .45; text-decoration: line-through; }
+.s-list li.want-row { color: var(--blue-text); font-weight: 600; }
+.s-price { color: var(--text); font-weight: 700; font-size: 12px; white-space: nowrap; }
+.s-owned-badge { font-size: 10px; background: var(--green-bg); color: var(--green-text); padding: 1px 6px; border-radius: 5px; font-weight: 600; }
+.cat-tag { font-size: 10px; background: var(--gray-bg); color: var(--gray-text); padding: 1px 5px; border-radius: 4px; margin-left: 4px; flex-shrink: 0; }
+.total-bar { background: var(--surface2); border-radius: 10px; padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.total-label { font-size: 12px; color: var(--muted); }
+.total-price { font-size: 17px; font-weight: 700; }
+
+/* ── Bottom nav ── */
+.nav { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--nav-h) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 100; }
+.nav-btn { flex: 1; border: none; background: none; color: var(--muted); font-size: 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; transition: color .15s; padding: 0; }
+.nav-btn svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.nav-btn.active { color: var(--blue-text); }
+.nav-btn span { font-size: 10px; font-weight: 600; }
+
+/* ── Install banner ── */
+.install-banner { background: var(--blue-bg); color: var(--blue-text); border-radius: 10px; padding: 10px 12px; margin: 10px 16px 0; font-size: 12px; display: none; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid var(--blue-border); }
+.install-banner button.go { background: var(--blue-text); color: #fff; border: none; border-radius: 7px; padding: 5px 12px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.install-banner button.dim { background: none; color: var(--blue-text); border: none; font-size: 16px; cursor: pointer; padding: 4px; line-height: 1; }
+</style>
+</head>
+<body>
+
+<div class="install-banner" id="install-banner">
+  <span>📲 Install for home screen app</span>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button class="go" id="install-btn">Install</button>
+    <button class="dim" onclick="this.closest('.install-banner').style.display='none'">✕</button>
+  </div>
+</div>
+
+<div class="header">
+  <h1 id="page-title">Wardrobe</h1>
+  <span class="header-sub" id="page-sub"></span>
+</div>
+
+<!-- WARDROBE -->
+<div id="sec-wardrobe" class="section active">
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">Owned</div><div class="stat-val" id="stat-owned">0</div></div>
+    <div class="stat"><div class="stat-label">Wanted</div><div class="stat-val" id="stat-wanted">0</div></div>
+    <div class="stat"><div class="stat-label">Closet value</div><div class="stat-val" id="stat-val">$0</div></div>
+  </div>
+  <div id="item-grid"></div>
+</div>
+
+<!-- CLOSET -->
+<div id="sec-closet" class="section">
+  <div class="stats-row">
+    <div class="stat"><div class="stat-label">Items</div><div class="stat-val" id="c-count">0</div></div>
+    <div class="stat"><div class="stat-label">Categories</div><div class="stat-val" id="c-cats">0</div></div>
+    <div class="stat"><div class="stat-label">Value</div><div class="stat-val" id="c-val">$0</div></div>
+  </div>
+  <div id="closet-container"></div>
+</div>
+
+<!-- MATRIX -->
+<div id="sec-matrix" class="section">
+  <div class="matrix-wrap"><table class="mx" id="mx-table"></table></div>
+  <div class="legend">
+    <div class="leg-item"><span class="dot dy">★</span> great combo</div>
+    <div class="leg-item"><span class="dot dg">✓</span> works well</div>
+    <div class="leg-item"><span class="dot dn">–</span> passable</div>
+    <div class="leg-item"><span class="dot dx">✕</span> avoid</div>
+  </div>
+  <div class="tip-box">Loafers own dress pants + chinos. White sneakers cross all casual outfits. Streetwear stays with jeans — the Samba is the exception that crosses into chinos.</div>
+</div>
+
+<!-- SHOPPING -->
+<div id="sec-shopping" class="section">
+  <div class="phase-card">
+    <span class="ph-badge ph1b">Phase 1 — buy first</span>
+    <h3>Core foundation</h3>
+    <ul class="s-list" id="p1list"></ul>
+  </div>
+  <div class="phase-card">
+    <span class="ph-badge ph2b">Phase 2 — fill in</span>
+    <h3>Round out the rotation</h3>
+    <ul class="s-list" id="p2list"></ul>
+  </div>
+  <div class="total-bar">
+    <span class="total-label">Full wardrobe estimate</span>
+    <span class="total-price">$2,800 – $4,200</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-wardrobe" onclick="showSection('wardrobe',this)">
+    <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    <span>Wardrobe</span>
+  </button>
+  <button class="nav-btn" id="nav-closet" onclick="showSection('closet',this)">
+    <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/><line x1="12" y1="8" x2="12" y2="10"/></svg>
+    <span>Closet</span>
+  </button>
+  <button class="nav-btn" id="nav-matrix" onclick="showSection('matrix',this)">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    <span>Mix & Match</span>
+  </button>
+  <button class="nav-btn" id="nav-shopping" onclick="showSection('shopping',this)">
+    <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    <span>Shopping</span>
+  </button>
+</nav>
+
+<script>
+// ── Data ──────────────────────────────────────────────
+const CATS = [
+  { label:"Shirts", items:[
+    {name:"White oxford",sub:"Shirt",brand:"J.Crew / Charles Tyrwhitt",color:"#E8E8E8",p:1,price:70},
+    {name:"Light blue oxford",sub:"Shirt",brand:"J.Crew / Banana Republic",color:"#BFD7EA",p:1,price:75},
+    {name:"Blue stripe oxford",sub:"Shirt",brand:"Charles Tyrwhitt",color:"#7FB3D3",p:1,price:70},
+    {name:"Navy oxford",sub:"Shirt",brand:"Ralph Lauren",color:"#1B3A6B",p:2,price:90},
+    {name:"Pink oxford",sub:"Shirt",brand:"Banana Republic",color:"#F4B8C1",p:2,price:80},
+    {name:"Gingham oxford",sub:"Shirt",brand:"J.Crew",color:"#89CFF0",p:2,price:75},
+  ]},
+  { label:"Dress pants", items:[
+    {name:"Charcoal dress pant",sub:"Dress pants",brand:"Banana Republic Traveler",color:"#555",p:1,price:95},
+    {name:"Navy dress pant",sub:"Dress pants",brand:"J.Crew Ludlow",color:"#1B3A6B",p:1,price:100},
+    {name:"Medium grey pant",sub:"Dress pants",brand:"Bonobos Slim",color:"#9B9B9B",p:2,price:110},
+    {name:"Tan dress pant",sub:"Dress pants",brand:"Banana Republic",color:"#C8A97E",p:2,price:95},
+  ]},
+  { label:"Chinos", items:[
+    {name:"Khaki chino",sub:"Chinos",brand:"Bonobos Slim",color:"#C8A97E",p:1,price:100},
+    {name:"Navy chino",sub:"Chinos",brand:"Banana Republic",color:"#1B3A6B",p:1,price:85},
+    {name:"Olive chino",sub:"Chinos",brand:"J.Crew 484",color:"#6B7C45",p:2,price:80},
+    {name:"Burgundy chino",sub:"Chinos",brand:"Bonobos",color:"#722F37",p:2,price:100},
+  ]},
+  { label:"Jeans", items:[
+    {name:"Dark indigo jeans",sub:"Jeans",brand:"Madewell Slim Straight",color:"#232D4B",p:1,price:110},
+    {name:"Medium wash jeans",sub:"Jeans",brand:"Levi's 511",color:"#5B7EA0",p:2,price:70},
+    {name:"Black jeans",sub:"Jeans",brand:"Madewell / Levi's",color:"#1A1A1A",p:2,price:85},
+  ]},
+  { label:"White sneakers", items:[
+    {name:"Axel Arigato Clean 90",sub:"White sneaker",brand:"Axel Arigato",color:"#F0F0F0",p:1,price:195,shoe:true},
+    {name:"Common Projects Achilles",sub:"White sneaker",brand:"Common Projects",color:"#E8E8E8",p:2,price:470,shoe:true},
+  ]},
+  { label:"Loafers", items:[
+    {name:"Loafer — cognac/tan",sub:"Loafer",brand:"Cole Haan / Magnanni",color:"#A0522D",p:1,price:175,shoe:true},
+    {name:"Loafer — black",sub:"Loafer",brand:"Cole Haan / G.H. Bass",color:"#1A1A1A",p:2,price:160,shoe:true},
+    {name:"Loafer — dark brown",sub:"Loafer",brand:"Magnanni",color:"#3B1F0E",p:2,price:280,shoe:true},
+  ]},
+  { label:"Streetwear sneakers", items:[
+    {name:"Adidas Samba",sub:"Streetwear sneaker",brand:"Adidas",color:"#1A1A1A",p:1,price:110,shoe:true},
+    {name:"New Balance 550",sub:"Streetwear sneaker",brand:"New Balance",color:"#DDEEFF",p:2,price:120,shoe:true},
+    {name:"Nike Dunk Low",sub:"Streetwear sneaker",brand:"Nike",color:"#C0392B",p:2,price:115,shoe:true},
+    {name:"Jordan 1 Low",sub:"Streetwear sneaker",brand:"Jordan / Nike",color:"#2C2C2C",p:2,price:130,shoe:true},
+  ]},
+];
+
+// Flatten + index
+let ALL = [];
+CATS.forEach(c => c.items.forEach(i => { i.cat = c.label; ALL.push(i); }));
+
+// ── State ──────────────────────────────────────────────
+let S = {};
+try { S = JSON.parse(localStorage.getItem('wv3') || '{}'); } catch(e) {}
+function save() { try { localStorage.setItem('wv3', JSON.stringify(S)); } catch(e) {} }
+function itemState(idx) { if (!S[idx]) S[idx] = {status:'none', notes:''}; return S[idx]; }
+
+// ── Build Wardrobe grid ────────────────────────────────
+const grid = document.getElementById('item-grid');
+CATS.forEach(cat => {
+  const lbl = document.createElement('div');
+  lbl.className = 'cat-label'; lbl.textContent = cat.label;
+  grid.appendChild(lbl);
+  const g = document.createElement('div'); g.className = 'grid';
+  cat.items.forEach(item => {
+    const idx = ALL.indexOf(item);
+    const st = itemState(idx);
+    const card = document.createElement('div');
+    card.className = 'item-card' + (st.status==='owned' ? ' is-owned' : st.status==='want' ? ' is-want' : '');
+    card.id = 'card-' + idx;
+    card.innerHTML = `
+      ${item.shoe ? `<span class="shoe-icon">👟</span>` : `<div class="swatch" style="background:${item.color}"></div>`}
+      <div class="item-name">${item.name}</div>
+      <div class="item-sub">${item.sub}</div>
+      <div class="item-brand">${item.brand}</div>
+      <span class="phase-badge ${item.p===1?'p1':'p2'}">Phase ${item.p}</span>
+      <div class="toggle-row">
+        <button class="tog own ${st.status==='owned'?'active':''}" data-idx="${idx}" data-val="owned">Own</button>
+        <button class="tog want ${st.status==='want'?'active':''}" data-idx="${idx}" data-val="want">Want</button>
+      </div>`;
+    g.appendChild(card);
+  });
+  grid.appendChild(g);
+});
+
+// Toggle handler (event delegation)
+document.getElementById('item-grid').addEventListener('click', e => {
+  const btn = e.target.closest('.tog');
+  if (!btn) return;
+  const idx = +btn.dataset.idx;
+  const val = btn.dataset.val;
+  const st = itemState(idx);
+  // clicking active toggle → clear; else set
+  st.status = (st.status === val) ? 'none' : val;
+  save();
+  refreshCard(idx);
+  updateWardrobeStats();
+  updateShoppingList();
+});
+
+function refreshCard(idx) {
+  const card = document.getElementById('card-' + idx);
+  if (!card) return;
+  const st = itemState(idx);
+  card.className = 'item-card' + (st.status==='owned' ? ' is-owned' : st.status==='want' ? ' is-want' : '');
+  card.querySelectorAll('.tog').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === st.status);
+  });
+}
+
+function updateWardrobeStats() {
+  let owned=0, wanted=0, val=0;
+  ALL.forEach((item,i) => {
+    const st = itemState(i);
+    if (st.status==='owned') { owned++; val+=item.price; }
+    if (st.status==='want') wanted++;
+  });
+  document.getElementById('stat-owned').textContent = owned;
+  document.getElementById('stat-wanted').textContent = wanted;
+  document.getElementById('stat-val').textContent = '$'+val.toLocaleString();
+}
+
+// ── Closet ────────────────────────────────────────────
+function renderCloset() {
+  const container = document.getElementById('closet-container');
+  const owned = ALL.map((item,i) => ({item,i})).filter(({i}) => itemState(i).status==='owned');
+
+  document.getElementById('c-count').textContent = owned.length;
+  const cats = [...new Set(owned.map(x=>x.item.cat))].length;
+  document.getElementById('c-cats').textContent = cats;
+  const val = owned.reduce((a,x)=>a+x.item.price,0);
+  document.getElementById('c-val').textContent = '$'+val.toLocaleString();
+
+  if (owned.length===0) {
+    container.innerHTML = `<div class="closet-empty"><div class="ico">👔</div><p>Toggle "Own" on any item in the Wardrobe tab to add it to your closet.</p></div>`;
+    return;
+  }
+
+  // Group by cat
+  const byCat = {};
+  owned.forEach(({item,i}) => { if(!byCat[item.cat]) byCat[item.cat]=[]; byCat[item.cat].push({item,i}); });
+
+  container.innerHTML = '';
+  Object.entries(byCat).forEach(([cat, entries]) => {
+    const lbl = document.createElement('div');
+    lbl.className = 'cat-label'; lbl.textContent = cat;
+    container.appendChild(lbl);
+    const cg = document.createElement('div'); cg.className = 'closet-grid';
+    entries.forEach(({item,i}) => {
+      const st = itemState(i);
+      const card = document.createElement('div'); card.className = 'closet-card';
+      card.innerHTML = `
+        <button class="rm" onclick="removeOwned(${i})">✕</button>
+        <div class="c-swatch-row">
+          ${item.shoe ? `<span style="font-size:18px">👟</span>` : `<div class="c-swatch" style="background:${item.color}"></div>`}
+          <div class="c-name">${item.name}</div>
+        </div>
+        <div class="c-brand">${item.brand} · $${item.price}</div>
+        <textarea class="c-notes" rows="2" placeholder="Add notes (fit, where bought, etc.)" data-idx="${i}">${st.notes||''}</textarea>`;
+      cg.appendChild(card);
+    });
+    container.appendChild(cg);
+  });
+
+  // Notes autosave
+  container.querySelectorAll('.c-notes').forEach(ta => {
+    ta.addEventListener('input', function() {
+      const idx = +this.dataset.idx;
+      itemState(idx).notes = this.value;
+      save();
+    });
+  });
+}
+
+window.removeOwned = function(idx) {
+  itemState(idx).status = 'none';
+  save();
+  refreshCard(idx);
+  updateWardrobeStats();
+  updateShoppingList();
+  renderCloset();
+};
+
+// ── Shopping list ─────────────────────────────────────
+function updateShoppingList() {
+  ['p1list','p2list'].forEach((id,pi) => {
+    const ul = document.getElementById(id); ul.innerHTML='';
+    ALL.filter(item=>item.p===pi+1).forEach(item => {
+      const idx = ALL.indexOf(item);
+      const st = itemState(idx);
+      const li = document.createElement('li');
+      const isOwned = st.status==='owned';
+      const isWant = st.status==='want';
+      if (isOwned) li.classList.add('owned-row');
+      if (isWant) li.classList.add('want-row');
+      li.innerHTML = `<span style="min-width:0;overflow:hidden">${item.name}<span class="cat-tag">${item.cat}</span></span>
+        <span class="s-price">${isOwned ? '<span class="s-owned-badge">Owned</span>' : ('~$'+item.price)}</span>`;
+      ul.appendChild(li);
+    });
+  });
+}
+
+// ── Matrix ────────────────────────────────────────────
+const SH = ["Axel Arigato","Common Projects","Cognac loafer","Black loafer","Drk brn loafer","Samba","NB 550","Dunk Low","Jordan 1"];
+const OUTFITS = [
+  "White oxford + charcoal pant","White oxford + navy pant","Blue oxford + khaki chino",
+  "Stripe oxford + navy chino","Pink oxford + grey pant","Gingham + olive chino",
+  "Oxford + dark indigo jeans","Oxford + black jeans","Dress shirt + formal pant",
+];
+const MX = [
+  ["★","★","★","★","★","–","✕","✕","✕"],
+  ["★","★","★","★","★","–","✕","✕","✕"],
+  ["★","★","★","✓","✓","✓","✓","–","–"],
+  ["★","★","★","✓","✓","✓","✓","–","–"],
+  ["✓","✓","★","★","★","–","✕","✕","✕"],
+  ["✓","✓","★","✓","✓","✓","✓","✓","–"],
+  ["★","★","–","✓","✓","★","★","★","★"],
+  ["★","★","–","★","✓","★","★","★","★"],
+  ["✓","✓","★","★","★","✕","✕","✕","✕"],
+];
+const DC = {"★":"dy","✓":"dg","–":"dn","✕":"dx"};
+const tbl = document.getElementById('mx-table');
+const hr = document.createElement('tr');
+hr.innerHTML = '<th>Outfit</th>' + SH.map(s=>`<th>${s}</th>`).join('');
+tbl.appendChild(hr);
+OUTFITS.forEach((o,i) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td class="rl">${o}</td>` + MX[i].map(v=>`<td><span class="dot ${DC[v]}">${v}</span></td>`).join('');
+  tbl.appendChild(tr);
+});
+
+// ── Nav ───────────────────────────────────────────────
+const PAGE_TITLES = {wardrobe:'Wardrobe',closet:'My Closet',matrix:'Mix & Match',shopping:'Shopping List'};
+function showSection(id, el) {
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[id];
+  if (id==='closet') renderCloset();
+}
+
+// ── PWA ───────────────────────────────────────────────
+let dPr;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); dPr=e;
+  document.getElementById('install-banner').style.display='flex';
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!dPr) return;
+  dPr.prompt();
+  await dPr.userChoice;
+  dPr=null;
+  document.getElementById('install-banner').style.display='none';
+});
+// manifest.json is linked statically in <head>
+if ('serviceWorker' in navigator) {
+  const sw = `const C='wv3';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll([self.location.pathname]))));self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([sw],{type:'application/javascript'}))).catch(()=>{});
+}
+
+// ── Init ──────────────────────────────────────────────
+updateWardrobeStats();
+updateShoppingList();
+</script>
+</body>
+</html>
